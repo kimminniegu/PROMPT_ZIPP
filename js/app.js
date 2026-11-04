@@ -1,15 +1,28 @@
 (function () {
   'use strict';
 
-  const DATA = window.PROMPTS || [];
-
-  const GROUPS = [
-    { id: 'basics',   ko: '기본기',          desc: '역할 주기, 예시 넣기, 말투 맞추기' },
-    { id: 'patterns', ko: '패턴 · 프레임워크', desc: '게임 만들기, 질문 다듬기, 답 검증하기' },
-    { id: 'advanced', ko: '고급 기술',        desc: '여러 관점으로 보기, 프롬프트 자동으로 만들기' }
+  const TASKS = [
+    { id: 'write',   name: '글쓰기',        desc: '메일, 제안서, 자소서, 발표 자료 쓸 때', tone: 'basics',
+      featured: ['p076', 'p068', 'p072'], subs: ['메일·메시지', '제안서·자소서', '발표·개요', '말투·표현'] },
+    { id: 'analyze', name: '분석·결정',     desc: '비교하고 판단하거나 계획을 세울 때',         tone: 'patterns',
+      featured: ['p025', 'p031', 'p096'], subs: ['비교·추천', '계획·일정', '전략·협상', '여러 관점', '깊이 판단'] },
+    { id: 'verify',  name: '답 검증',       desc: 'AI 답을 믿어도 될지 확인할 때',             tone: 'advanced',
+      featured: ['p056', 'p059', 'p065'], subs: ['사실 확인', '스스로 고치기', '단계별 검증'] },
+    { id: 'skill',   name: '프롬프트 실력',  desc: '질문과 프롬프트를 더 잘 쓰고 싶을 때',       tone: 'basics',
+      featured: ['p116', 'p011', 'p050'], subs: ['기본·예시', '역할·듣는 사람', '마크다운·강조', '질문 잘하기', '단축어·상황 고정', '프롬프트 만들기'] },
+    { id: 'play',    name: '게임·롤플레이', desc: '놀면서 연습하고 싶을 때',                   tone: 'advanced',
+      featured: ['p040', 'p042', 'p094'], subs: [] },
+    { id: 'code',    name: '코딩',          desc: '웹페이지나 앱을 만들 때',                  tone: 'patterns',
+      featured: ['p005', 'p019', 'p038'], subs: ['작은 앱 만들기', '게임 만들기 과정', '퀴즈 앱 만들기 과정', '기획·요청 잘하기', '고치기·점검'] }
   ];
+  const taskOf = (id) => TASKS.find((t) => t.id === id);
 
-  const state = { group: null, chapter: null, tags: new Set(), q: '', open: 'basics' };
+  // 메뉴 순서대로 보여 준다 (같은 메뉴 안에서는 원래 순서 유지)
+  const taskOrder = (p) => TASKS.findIndex((t) => t.id === p.task);
+  const DATA = (window.PROMPTS || []).slice().sort((a, b) => taskOrder(a) - taskOrder(b));
+
+  const state = { task: null, sub: null, q: '' };
+  let searchTimer;
 
   const $ = (s, el = document) => el.querySelector(s);
   const el = (tag, cls, text) => {
@@ -62,84 +75,36 @@
   const copiesTogether = (p) => p.parts.some((x) => /한 번에 복사|함께 붙여넣기/.test(x.where));
 
   /* ── 사이드바 (넓은 화면의 사이드바와 좁은 화면의 창이 같은 메뉴를 쓴다) ── */
-  function buildMenu(wrap, prefix) {
+  function buildMenu(wrap) {
     const menu = el('div', 'side-menu');
 
     const all = el('button', 'side-all');
     all.type = 'button';
-    all.append(el('span', null, '전체 프롬프트'), el('span', 'side-count', String(DATA.length)));
-    all.addEventListener('click', () => {
-      setFilter({ group: null, chapter: null });
-      closeSheet();
-    });
+    all.append(el('span', null, '한눈에 보기'));
+    all.addEventListener('click', () => pick(null));
     menu.appendChild(all);
 
-    GROUPS.forEach((g) => {
-      const items = DATA.filter((p) => p.group === g.id);
-      const chapters = [];
-      items.forEach((p) => {
-        const c = chapters.find((x) => x.name === p.chapter);
-        c ? c.n++ : chapters.push({ name: p.chapter, n: 1 });
-      });
-
-      const box = el('section', 'side-group');
-      box.dataset.g = g.id;
-
-      const listId = prefix + '-' + g.id;
-      const head = el('button', 'side-head');
-      head.type = 'button';
-      head.setAttribute('aria-controls', listId);
-      head.append(el('span', 'side-name', g.ko), el('span', 'side-count', String(items.length)));
-      head.insertAdjacentHTML('beforeend', ICON.chev);
-      head.appendChild(el('span', 'side-desc', g.desc));
-      head.addEventListener('click', () => {
-        // 이미 펼쳐서 보고 있는 그룹을 다시 누르면 접기만 한다
-        if (state.open === g.id && state.group === g.id && !state.chapter) {
-          state.open = null;
-          render();
-        } else {
-          setFilter({ group: g.id, chapter: null });
-        }
-      });
-
-      const list = el('ul', 'side-chapters');
-      list.id = listId;
-      chapters.forEach((c) => {
-        const li = el('li');
-        const b = el('button', 'side-chapter');
-        b.type = 'button';
-        b.dataset.chapter = c.name;
-        b.append(el('span', null, c.name), el('span', 'side-count', String(c.n)));
-        b.addEventListener('click', () => {
-          const same = state.chapter === c.name;
-          setFilter({ group: g.id, chapter: same ? null : c.name });
-          if (!same) closeSheet();
-        });
-        li.appendChild(b);
-        list.appendChild(li);
-      });
-
-      box.append(head, list);
-      menu.appendChild(box);
+    TASKS.forEach((t) => {
+      const b = el('button', 'side-task');
+      b.type = 'button';
+      b.dataset.task = t.id;
+      b.dataset.g = t.tone;
+      b.append(
+        el('span', 'side-name', t.name),
+        el('span', 'side-count', String(DATA.filter((p) => p.task === t.id).length)),
+        el('span', 'side-desc', t.desc)
+      );
+      b.addEventListener('click', () => pick(t.id));
+      menu.appendChild(b);
     });
 
     wrap.appendChild(menu);
   }
 
-  function syncMenus(count) {
+  function syncMenus() {
     const mark = (n, on) => (on ? n.setAttribute('aria-current', 'true') : n.removeAttribute('aria-current'));
-    document.querySelectorAll('.side-all').forEach((b) => mark(b, !state.group && !state.chapter));
-    document.querySelectorAll('.side-group').forEach((box) => {
-      const id = box.dataset.g;
-      const open = state.open === id;
-      box.dataset.open = String(open);
-      const head = box.querySelector('.side-head');
-      head.setAttribute('aria-expanded', String(open));
-      mark(head, state.group === id && !state.chapter);
-      box.querySelector('.side-chapters').hidden = !open;
-    });
-    document.querySelectorAll('.side-chapter').forEach((b) => mark(b, b.dataset.chapter === state.chapter));
-    $('#sheetDone').textContent = count + '개 보기';
+    document.querySelectorAll('.side-all').forEach((b) => mark(b, !state.task));
+    document.querySelectorAll('.side-task').forEach((b) => mark(b, b.dataset.task === state.task));
   }
 
   function closeSheet() {
@@ -148,66 +113,136 @@
     if (typeof s.close === 'function') s.close(); else s.removeAttribute('open');
   }
 
-  function setFilter(f) {
-    state.group = f.group;
-    state.chapter = f.chapter;
-    if (f.group) state.open = f.group;
+  const scrollBehavior = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
+  function pick(task) {
+    state.task = task;
+    state.sub = null;
+    if (!task) {
+      clearTimeout(searchTimer);
+      state.q = '';
+      $('#q').value = '';
+    }
     render();
+    closeSheet();
+    if (!task) {
+      window.scrollTo({ top: 0, behavior: scrollBehavior() });
+      return;
+    }
     // 목록 시작이 이미 화면에 잘 보이면 화면을 움직이지 않는다
     const top = $('#library').getBoundingClientRect().top;
     if (top < 0 || top > innerHeight * 0.6) {
-      $('#library').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      $('#library').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+    }
+  }
+
+  function pickSub(sub) {
+    state.sub = sub;
+    render();
+    if ($('#library').getBoundingClientRect().top < 0) {
+      $('#library').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
     }
   }
 
   /* ── 필터링 ── */
   function matches(p) {
-    if (state.group && p.group !== state.group) return false;
-    if (state.chapter && p.chapter !== state.chapter) return false;
-    for (const t of state.tags) {
-      if (t === 'Gemini' || t === 'Claude') { if (!p.tools.includes(t)) return false; }
-      else if (!p.tags.includes(t)) return false;
-    }
+    if (state.task && p.task !== state.task) return false;
     if (state.q) {
+      // 검색할 때는 세부 탭과 상관없이 고른 메뉴 전체에서 찾는다
       const hay = (p.title + ' ' + p.chapter + ' ' + p.parts.map((x) => x.label + ' ' + x.body).join(' ')).toLowerCase();
       return state.q.split(/\s+/).every((w) => hay.includes(w));
     }
-    return true;
+    return !state.sub || p.sub === state.sub;
   }
 
   function render() {
-    const list = DATA.filter(matches);
     const box = $('#cardList');
-    box.replaceChildren(...list.map(cardEl));
-    $('#empty').hidden = list.length > 0;
-    $('#resultCount').textContent = list.length + '개';
+    const t = taskOf(state.task);
 
-    const g = GROUPS.find((x) => x.id === state.group);
-    $('#filterName').textContent = state.chapter || (g ? g.ko : '전체 프롬프트');
-    $('#resetBtn').hidden = !state.group && !state.chapter && !state.tags.size && !state.q;
+    if (!t && !state.q) {
+      box.className = 'home';
+      box.replaceChildren(...TASKS.map(homeSection));
+      $('#empty').hidden = true;
+      $('#resultCount').textContent = '';
+      $('#filterName').textContent = '한눈에 보기';
+    } else {
+      const list = DATA.filter(matches);
+      box.className = 'card-list';
+      box.replaceChildren(...list.map((p) => cardEl(p)));
+      $('#empty').hidden = list.length > 0;
+      $('#resultCount').textContent = list.length + '개';
+      $('#filterName').textContent = t ? t.name : '검색 결과';
+    }
+    $('#resetBtn').hidden = !t && !state.q;
 
-    syncMenus(list.length);
+    renderTabs();
+    syncMenus();
   }
 
-  function cardEl(p) {
-    const c = el('article', 'card');
-    c.dataset.g = p.group;
+  /* ── 세부 탭: 한 번에 하나만 고르며, 카드가 있는 분류만 있으므로 0개가 나오지 않는다 ── */
+  function renderTabs() {
+    const wrap = $('#subTabs');
+    const t = taskOf(state.task);
+    wrap.hidden = !t || !t.subs.length || !!state.q;
+    if (wrap.hidden) return;
+
+    // 같은 메뉴 안에서는 버튼을 다시 만들지 않아 키보드 위치가 유지된다
+    if (wrap.dataset.task !== t.id) {
+      wrap.dataset.task = t.id;
+      const cards = DATA.filter((p) => p.task === t.id);
+      const tab = (name, sub, n) => {
+        const b = el('button', 'sub-tab', name);
+        b.type = 'button';
+        b.dataset.sub = sub || '';
+        b.appendChild(el('span', null, String(n)));
+        b.addEventListener('click', () => pickSub(sub));
+        return b;
+      };
+      wrap.replaceChildren(
+        tab('전체', null, cards.length),
+        ...t.subs.map((s) => tab(s, s, cards.filter((p) => p.sub === s).length))
+      );
+    }
+    wrap.querySelectorAll('.sub-tab').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.sub === (state.sub || '')));
+    });
+  }
+
+  /* ── 첫 화면: 할 일별 대표 카드 3개 ── */
+  function homeSection(t) {
+    const sec = el('section', 'home-sec');
+    const head = el('div', 'home-head');
+    const text = el('div');
+    text.append(el('h3', 'home-name', t.name), el('p', 'home-desc', t.desc));
+
+    const more = el('button', 'btn btn-ghost', DATA.filter((p) => p.task === t.id).length + '개 모두 보기');
+    more.type = 'button';
+    more.insertAdjacentHTML('beforeend', ICON.chev);
+    more.addEventListener('click', () => {
+      pick(t.id);
+      $('#libTitle').focus({ preventScroll: true });
+    });
+    head.append(text, more);
+
+    const grid = el('div', 'home-grid');
+    grid.append(...t.featured.map((id) => cardEl(DATA.find((p) => p.id === id), true)));
+    sec.append(head, grid);
+    return sec;
+  }
+
+  function cardEl(p, compact) {
+    const c = el('article', compact ? 'card compact' : 'card');
+    c.dataset.g = taskOf(p.task).tone;
     c.tabIndex = 0;
     c.setAttribute('aria-label', p.title + ' 자세히 보기');
 
     const left = el('div', 'card-left');
-    left.appendChild(el('h3', 'card-title', p.title));
-    const tags = el('div', 'tags');
-    if (p.tags.includes('ref')) tags.appendChild(el('span', 'tag ref', '참고용 틀'));
-    if (p.tags.includes('trade')) tags.appendChild(el('span', 'tag', '무역'));
-    if (p.tags.includes('vibe')) tags.appendChild(el('span', 'tag', '바이브 코딩'));
-    p.tools.forEach((t) => tags.appendChild(el('span', 'tag', t)));
-    if (tags.children.length) left.appendChild(tags);
-    left.appendChild(el('p', 'card-chapter', p.chapter));
+    left.appendChild(el(compact ? 'h4' : 'h3', 'card-title', p.title));
 
+    // 미리보기는 참고용 단계보다 실제로 쓰는 프롬프트를 먼저 보여 준다
+    const main = p.parts.find((x) => !x.where.startsWith('참고용')) || p.parts[0];
     const right = el('div', 'card-right');
-    right.appendChild(el('p', 'card-label', p.parts[0].label));
-    right.appendChild(el('p', 'card-preview', p.parts[0].body));
+    right.appendChild(el('p', 'card-preview', main.body));
 
     const actions = el('div', 'card-actions');
     const canCopy = p.parts.length === 1 || copiesTogether(p);
@@ -223,7 +258,6 @@
     more.insertAdjacentHTML('beforeend', ICON.chev);
     more.addEventListener('click', (e) => { e.stopPropagation(); openDetail(p); });
     actions.appendChild(more);
-    if (p.parts.length > 1) actions.appendChild(el('span', 'parts-note', p.parts.length + '단계 프롬프트'));
     right.appendChild(actions);
 
     c.append(left, right);
@@ -273,41 +307,23 @@
   /* ── 시작 ── */
   function init() {
     $('#totalCount').textContent = DATA.length;
-    buildMenu($('#sideNav'), 'side');
-    buildMenu($('#sheetNav'), 'sheet');
+    buildMenu($('#sideNav'));
+    buildMenu($('#sheetNav'));
 
-    let t;
     $('#q').addEventListener('input', (e) => {
-      clearTimeout(t);
-      t = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); render(); }, 120);
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); render(); }, 120);
     });
     $('#q').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') $('#library').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    document.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
-      const tag = b.dataset.tag;
-      state.tags.has(tag) ? state.tags.delete(tag) : state.tags.add(tag);
-      b.setAttribute('aria-pressed', String(state.tags.has(tag)));
-      render();
-    }));
-
-    $('#resetBtn').addEventListener('click', () => {
-      clearTimeout(t);
-      state.group = null;
-      state.chapter = null;
-      state.q = '';
-      state.tags.clear();
-      $('#q').value = '';
-      document.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', 'false'));
-      render();
-    });
+    $('#resetBtn').addEventListener('click', () => pick(null));
     $('#sideToggle').addEventListener('click', () => {
       const s = $('#sheet');
       if (typeof s.showModal === 'function') s.showModal(); else s.setAttribute('open', '');
     });
     $('#sheetClose').addEventListener('click', closeSheet);
-    $('#sheetDone').addEventListener('click', closeSheet);
     $('#sheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSheet(); });
     $('#dClose').addEventListener('click', closeDetail);
     $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDetail(); });
