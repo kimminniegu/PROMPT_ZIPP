@@ -4,12 +4,12 @@
   const DATA = window.PROMPTS || [];
 
   const GROUPS = [
-    { id: 'basics',   en: 'basics',   ko: '기본기',          desc: '유형, 예시, 페르소나, 마크다운, 말투처럼 매일 쓰는 기본' },
-    { id: 'patterns', en: 'patterns', ko: '패턴 · 프레임워크', desc: '게임, 질문 개선, 팩트 체크, 리플렉션과 CO-STAR 같은 틀' },
-    { id: 'advanced', en: 'advanced', ko: '고급 기술',        desc: '다중 관점, 심사숙고(CoT), 프롬프트를 만드는 프롬프트(APE)' }
+    { id: 'basics',   ko: '기본기',          desc: '역할 주기, 예시 넣기, 말투 맞추기' },
+    { id: 'patterns', ko: '패턴 · 프레임워크', desc: '게임 만들기, 질문 다듬기, 답 검증하기' },
+    { id: 'advanced', ko: '고급 기술',        desc: '여러 관점으로 보기, 프롬프트 자동으로 만들기' }
   ];
 
-  const state = { group: null, chapter: null, tags: new Set(), q: '' };
+  const state = { group: null, chapter: null, tags: new Set(), q: '', open: 'basics' };
 
   const $ = (s, el = document) => el.querySelector(s);
   const el = (tag, cls, text) => {
@@ -58,10 +58,22 @@
   }
 
   const fullText = (p) => p.parts.map((x) => x.body).join('\n\n');
+  // 사용법에 함께 붙여넣으라고 적힌 카드만 묶어서 복사한다. 나머지 단계는 하나씩 입력해야 한다.
+  const copiesTogether = (p) => p.parts.some((x) => /한 번에 복사|함께 붙여넣기/.test(x.where));
 
-  /* ── 그룹 카드 ── */
-  function renderGroups() {
-    const wrap = $('#groupList');
+  /* ── 사이드바 (넓은 화면의 사이드바와 좁은 화면의 창이 같은 메뉴를 쓴다) ── */
+  function buildMenu(wrap, prefix) {
+    const menu = el('div', 'side-menu');
+
+    const all = el('button', 'side-all');
+    all.type = 'button';
+    all.append(el('span', null, '전체 프롬프트'), el('span', 'side-count', String(DATA.length)));
+    all.addEventListener('click', () => {
+      setFilter({ group: null, chapter: null });
+      closeSheet();
+    });
+    menu.appendChild(all);
+
     GROUPS.forEach((g) => {
       const items = DATA.filter((p) => p.group === g.id);
       const chapters = [];
@@ -70,46 +82,82 @@
         c ? c.n++ : chapters.push({ name: p.chapter, n: 1 });
       });
 
-      const card = el('article', 'group');
-      card.dataset.g = g.id;
+      const box = el('section', 'side-group');
+      box.dataset.g = g.id;
 
-      const left = el('div');
-      left.appendChild(el('p', 'group-en', g.en));
-      const ko = el('button', 'group-ko');
-      ko.type = 'button';
-      ko.innerHTML = '';
-      ko.append(g.ko + ' ' + items.length + '개');
-      ko.insertAdjacentHTML('beforeend', ICON.chev);
-      ko.addEventListener('click', () => setFilter({ group: g.id, chapter: null }));
-      left.appendChild(ko);
-      left.appendChild(el('p', 'group-desc', g.desc));
-
-      const pills = el('div', 'pills');
-      chapters.forEach((c) => {
-        const b = el('button', 'pill');
-        b.type = 'button';
-        b.dataset.chapter = c.name;
-        b.setAttribute('aria-pressed', 'false');
-        b.appendChild(el('span', null, c.name));
-        b.appendChild(el('span', 'n', String(c.n)));
-        b.insertAdjacentHTML('beforeend', ICON.chev);
-        b.addEventListener('click', () => {
-          const same = state.chapter === c.name;
-          setFilter(same ? { group: null, chapter: null } : { group: g.id, chapter: c.name });
-        });
-        pills.appendChild(b);
+      const listId = prefix + '-' + g.id;
+      const head = el('button', 'side-head');
+      head.type = 'button';
+      head.setAttribute('aria-controls', listId);
+      head.append(el('span', 'side-name', g.ko), el('span', 'side-count', String(items.length)));
+      head.insertAdjacentHTML('beforeend', ICON.chev);
+      head.appendChild(el('span', 'side-desc', g.desc));
+      head.addEventListener('click', () => {
+        // 이미 펼쳐서 보고 있는 그룹을 다시 누르면 접기만 한다
+        if (state.open === g.id && state.group === g.id && !state.chapter) {
+          state.open = null;
+          render();
+        } else {
+          setFilter({ group: g.id, chapter: null });
+        }
       });
 
-      card.append(left, pills);
-      wrap.appendChild(card);
+      const list = el('ul', 'side-chapters');
+      list.id = listId;
+      chapters.forEach((c) => {
+        const li = el('li');
+        const b = el('button', 'side-chapter');
+        b.type = 'button';
+        b.dataset.chapter = c.name;
+        b.append(el('span', null, c.name), el('span', 'side-count', String(c.n)));
+        b.addEventListener('click', () => {
+          const same = state.chapter === c.name;
+          setFilter({ group: g.id, chapter: same ? null : c.name });
+          if (!same) closeSheet();
+        });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+
+      box.append(head, list);
+      menu.appendChild(box);
     });
+
+    wrap.appendChild(menu);
+  }
+
+  function syncMenus(count) {
+    const mark = (n, on) => (on ? n.setAttribute('aria-current', 'true') : n.removeAttribute('aria-current'));
+    document.querySelectorAll('.side-all').forEach((b) => mark(b, !state.group && !state.chapter));
+    document.querySelectorAll('.side-group').forEach((box) => {
+      const id = box.dataset.g;
+      const open = state.open === id;
+      box.dataset.open = String(open);
+      const head = box.querySelector('.side-head');
+      head.setAttribute('aria-expanded', String(open));
+      mark(head, state.group === id && !state.chapter);
+      box.querySelector('.side-chapters').hidden = !open;
+    });
+    document.querySelectorAll('.side-chapter').forEach((b) => mark(b, b.dataset.chapter === state.chapter));
+    $('#sheetDone').textContent = count + '개 보기';
+  }
+
+  function closeSheet() {
+    const s = $('#sheet');
+    if (!s.hasAttribute('open')) return;
+    if (typeof s.close === 'function') s.close(); else s.removeAttribute('open');
   }
 
   function setFilter(f) {
     state.group = f.group;
     state.chapter = f.chapter;
+    if (f.group) state.open = f.group;
     render();
-    $('#library').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    // 목록 시작이 이미 화면에 잘 보이면 화면을 움직이지 않는다
+    const top = $('#library').getBoundingClientRect().top;
+    if (top < 0 || top > innerHeight * 0.6) {
+      $('#library').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 
   /* ── 필터링 ── */
@@ -136,9 +184,9 @@
 
     const g = GROUPS.find((x) => x.id === state.group);
     $('#filterName').textContent = state.chapter || (g ? g.ko : '전체 프롬프트');
-    $('#resetBtn').hidden = !state.group && !state.chapter;
+    $('#resetBtn').hidden = !state.group && !state.chapter && !state.tags.size && !state.q;
 
-    document.querySelectorAll('.pill').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.chapter === state.chapter)));
+    syncMenus(list.length);
   }
 
   function cardEl(p) {
@@ -162,14 +210,19 @@
     right.appendChild(el('p', 'card-preview', p.parts[0].body));
 
     const actions = el('div', 'card-actions');
-    const copy = el('button', 'btn btn-primary');
-    copy.type = 'button';
-    copy.innerHTML = ICON.copy + (p.parts.length > 1 ? '전체 복사' : '복사');
-    copy.addEventListener('click', (e) => { e.stopPropagation(); copyText(fullText(p), copy); });
-    const more = el('button', 'btn btn-ghost', '자세히 보기');
+    const canCopy = p.parts.length === 1 || copiesTogether(p);
+    if (canCopy) {
+      const copy = el('button', 'btn btn-primary');
+      copy.type = 'button';
+      copy.innerHTML = ICON.copy + (p.parts.length > 1 ? '전체 복사' : '복사');
+      copy.addEventListener('click', (e) => { e.stopPropagation(); copyText(fullText(p), copy); });
+      actions.appendChild(copy);
+    }
+    const more = el('button', canCopy ? 'btn btn-ghost' : 'btn btn-primary', canCopy ? '자세히 보기' : '단계별로 복사하기');
     more.type = 'button';
+    more.insertAdjacentHTML('beforeend', ICON.chev);
     more.addEventListener('click', (e) => { e.stopPropagation(); openDetail(p); });
-    actions.append(copy, more);
+    actions.appendChild(more);
     if (p.parts.length > 1) actions.appendChild(el('span', 'parts-note', p.parts.length + '단계 프롬프트'));
     right.appendChild(actions);
 
@@ -201,7 +254,7 @@
     }));
     const foot = $('#dFoot');
     foot.replaceChildren();
-    if (p.parts.length > 1) {
+    if (p.parts.length > 1 && copiesTogether(p)) {
       const all = el('button', 'btn btn-ghost');
       all.type = 'button';
       all.innerHTML = ICON.copy + p.parts.length + '개 한 번에 복사';
@@ -220,7 +273,8 @@
   /* ── 시작 ── */
   function init() {
     $('#totalCount').textContent = DATA.length;
-    renderGroups();
+    buildMenu($('#sideNav'), 'side');
+    buildMenu($('#sheetNav'), 'sheet');
 
     let t;
     $('#q').addEventListener('input', (e) => {
@@ -238,7 +292,23 @@
       render();
     }));
 
-    $('#resetBtn').addEventListener('click', () => { state.group = null; state.chapter = null; render(); });
+    $('#resetBtn').addEventListener('click', () => {
+      clearTimeout(t);
+      state.group = null;
+      state.chapter = null;
+      state.q = '';
+      state.tags.clear();
+      $('#q').value = '';
+      document.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      render();
+    });
+    $('#sideToggle').addEventListener('click', () => {
+      const s = $('#sheet');
+      if (typeof s.showModal === 'function') s.showModal(); else s.setAttribute('open', '');
+    });
+    $('#sheetClose').addEventListener('click', closeSheet);
+    $('#sheetDone').addEventListener('click', closeSheet);
+    $('#sheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSheet(); });
     $('#dClose').addEventListener('click', closeDetail);
     $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDetail(); });
 
