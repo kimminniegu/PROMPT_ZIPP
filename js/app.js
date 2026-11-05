@@ -74,43 +74,26 @@
   // 사용법에 함께 붙여넣으라고 적힌 카드만 묶어서 복사한다. 나머지 단계는 하나씩 입력해야 한다.
   const copiesTogether = (p) => p.parts.some((x) => /한 번에 복사|함께 붙여넣기/.test(x.where));
 
-  /* ── 사이드바 (넓은 화면의 사이드바와 좁은 화면의 창이 같은 메뉴를 쓴다) ── */
-  function buildMenu(wrap) {
-    const menu = el('div', 'side-menu');
-
-    const all = el('button', 'side-all');
-    all.type = 'button';
-    all.append(el('span', null, '한눈에 보기'));
-    all.addEventListener('click', () => pick(null));
-    menu.appendChild(all);
-
-    TASKS.forEach((t) => {
-      const b = el('button', 'side-task');
+  /* ── 큰 분류 버튼 ── */
+  function buildTaskNav() {
+    const button = (name, task) => {
+      const b = el('button', 'task-btn', name);
       b.type = 'button';
-      b.dataset.task = t.id;
-      b.dataset.g = t.tone;
-      b.append(
-        el('span', 'side-name', t.name),
-        el('span', 'side-count', String(DATA.filter((p) => p.task === t.id).length)),
-        el('span', 'side-desc', t.desc)
-      );
-      b.addEventListener('click', () => pick(t.id));
-      menu.appendChild(b);
+      b.dataset.task = task || '';
+      b.addEventListener('click', () => pick(task));
+      return b;
+    };
+    $('#taskNav').replaceChildren(
+      button('한눈에 보기', null),
+      ...TASKS.map((t) => button(t.name, t.id))
+    );
+  }
+
+  function syncTaskNav() {
+    document.querySelectorAll('.task-btn').forEach((b) => {
+      if (b.dataset.task === (state.task || '')) b.setAttribute('aria-current', 'true');
+      else b.removeAttribute('aria-current');
     });
-
-    wrap.appendChild(menu);
-  }
-
-  function syncMenus() {
-    const mark = (n, on) => (on ? n.setAttribute('aria-current', 'true') : n.removeAttribute('aria-current'));
-    document.querySelectorAll('.side-all').forEach((b) => mark(b, !state.task));
-    document.querySelectorAll('.side-task').forEach((b) => mark(b, b.dataset.task === state.task));
-  }
-
-  function closeSheet() {
-    const s = $('#sheet');
-    if (!s.hasAttribute('open')) return;
-    if (typeof s.close === 'function') s.close(); else s.removeAttribute('open');
   }
 
   const scrollBehavior = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
@@ -124,7 +107,6 @@
       $('#q').value = '';
     }
     render();
-    closeSheet();
     if (!task) {
       window.scrollTo({ top: 0, behavior: scrollBehavior() });
       return;
@@ -158,8 +140,12 @@
   function render() {
     const box = $('#cardList');
     const t = taskOf(state.task);
+    const isHome = !t && !state.q;
 
-    if (!t && !state.q) {
+    // 첫 화면에서는 버튼 이름과 겹치므로 제목을 화면에서만 숨긴다 (화면 낭독기는 읽음)
+    $('#listHead').classList.toggle('sr-only', isHome);
+
+    if (isHome) {
       box.className = 'home';
       box.replaceChildren(...TASKS.map(homeSection));
       $('#empty').hidden = true;
@@ -173,10 +159,9 @@
       $('#resultCount').textContent = list.length + '개';
       $('#filterName').textContent = t ? t.name : '검색 결과';
     }
-    $('#resetBtn').hidden = !t && !state.q;
 
     renderTabs();
-    syncMenus();
+    syncTaskNav();
   }
 
   /* ── 세부 탭: 한 번에 하나만 고르며, 카드가 있는 분류만 있으므로 0개가 나오지 않는다 ── */
@@ -307,8 +292,7 @@
   /* ── 시작 ── */
   function init() {
     $('#totalCount').textContent = DATA.length;
-    buildMenu($('#sideNav'));
-    buildMenu($('#sheetNav'));
+    buildTaskNav();
 
     $('#q').addEventListener('input', (e) => {
       clearTimeout(searchTimer);
@@ -318,13 +302,6 @@
       if (e.key === 'Enter') $('#library').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    $('#resetBtn').addEventListener('click', () => pick(null));
-    $('#sideToggle').addEventListener('click', () => {
-      const s = $('#sheet');
-      if (typeof s.showModal === 'function') s.showModal(); else s.setAttribute('open', '');
-    });
-    $('#sheetClose').addEventListener('click', closeSheet);
-    $('#sheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSheet(); });
     $('#dClose').addEventListener('click', closeDetail);
     $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDetail(); });
 

@@ -9,39 +9,29 @@
 </head>
 <body>
 <main class="layout">
-  <aside class="side" aria-labelledby="sideTitle">
-    <p class="side-brand">프롬프트 ZIPP</p>
-    <h2 id="sideTitle" class="side-title">무엇을 하고 싶으세요?</h2>
-    <nav id="sideNav" aria-labelledby="sideTitle"></nav>
-  </aside>
+  <header class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <p class="hero-brand">프롬프트 ZIPP</p>
+    <p class="hero-eyebrow">바로 복사해서 쓰는 프롬프트 모음</p>
+    <h1 class="hero-title">필요한 프롬프트,<br>골라서 바로 복사</h1>
+    <p class="hero-sub"><b id="totalCount">0</b>개의 프롬프트를 하고 싶은 일별로 정리했어요</p>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="예) 페르소나, 고객 메일, CoT" autocomplete="off">
+    </label>
+  </header>
 
-  <div class="content">
-    <header class="hero">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <p class="hero-eyebrow">바로 복사해서 쓰는 프롬프트 모음</p>
-      <h1 class="hero-title">필요한 프롬프트,<br>골라서 바로 복사</h1>
-      <p class="hero-sub"><b id="totalCount">0</b>개의 프롬프트를 하고 싶은 일별로 정리했어요</p>
-      <label class="search" for="q">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="예) 페르소나, 고객 메일, CoT" autocomplete="off">
-      </label>
-    </header>
-
-    <section class="library" id="library" aria-labelledby="libTitle">
-      <div class="toolbar">
-        <div class="toolbar-row">
-          <h2 id="libTitle" class="sec-title sm" tabindex="-1"><span id="filterName">한눈에 보기</span> <span class="count" id="resultCount"></span></h2>
-          <div class="toolbar-actions">
-            <button type="button" class="reset" id="resetBtn" hidden>처음으로</button>
-            <button type="button" class="side-toggle" id="sideToggle" aria-haspopup="dialog">할 일 고르기</button>
-          </div>
-        </div>
-        <div id="subTabs" class="sub-tabs" role="group" aria-label="세부 분류" hidden></div>
-      </div>
-      <div id="cardList" class="card-list"></div>
-      <p id="empty" class="empty" hidden>찾는 프롬프트가 없어요. 다른 단어로 검색해 보세요.</p>
-    </section>
-  </div>
+  <section class="library" id="library" aria-labelledby="libTitle">
+    <div class="toolbar">
+      <nav id="taskNav" class="task-nav" aria-label="무엇을 하고 싶으세요?"></nav>
+      <div id="subTabs" class="sub-tabs" role="group" aria-label="세부 분류" hidden></div>
+    </div>
+    <div id="listHead" class="list-head">
+      <h2 id="libTitle" class="sec-title sm" tabindex="-1"><span id="filterName">한눈에 보기</span> <span class="count" id="resultCount"></span></h2>
+    </div>
+    <div id="cardList" class="card-list"></div>
+    <p id="empty" class="empty" hidden>찾는 프롬프트가 없어요. 다른 단어로 검색해 보세요.</p>
+  </section>
 </main>
 
 <footer class="foot">프롬프트 ZIPP · 수업 자료를 바탕으로 정리</footer>
@@ -58,16 +48,6 @@
   </div>
   <div id="dParts" class="detail-parts"></div>
   <div class="detail-foot" id="dFoot"></div>
-</dialog>
-
-<dialog id="sheet" class="sheet" aria-labelledby="sheetTitle">
-  <div class="sheet-head">
-    <h2 id="sheetTitle">무엇을 하고 싶으세요?</h2>
-    <button type="button" class="icon-btn" id="sheetClose" aria-label="닫기">
-      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
-    </button>
-  </div>
-  <nav id="sheetNav" class="sheet-nav" aria-labelledby="sheetTitle"></nav>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

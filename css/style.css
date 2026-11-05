@@ -68,7 +68,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:12px}
 h1,h2,h3,h4{text-wrap:balance;margin:0}
 
-main,.foot{max-width:1720px;margin-inline:auto}
+main,.foot{max-width:1200px;margin-inline:auto}
 @media (min-width:1025px){
   body{padding-left:24px;padding-right:24px}
 }
@@ -81,7 +81,8 @@ main,.foot{max-width:1720px;margin-inline:auto}
              radial-gradient(35% 55% at 72% 55%,var(--g-advanced),transparent 70%);
   opacity:.55;filter:blur(20px);
 }
-.hero-eyebrow{margin:0 0 12px;color:var(--blue);font-weight:700;font-size:15px}
+.hero-brand{margin:0 0 4px;color:var(--blue);font-size:20px;font-weight:800;letter-spacing:-.02em}
+.hero-eyebrow{margin:0 0 12px;color:var(--ink-2);font-weight:700;font-size:15px}
 .hero-title{font-size:clamp(32px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.25}
 .hero-sub{margin:12px 0 24px;color:var(--ink-2);font-size:17px}
 .hero-sub b{color:var(--blue);font-variant-numeric:tabular-nums}
@@ -101,51 +102,7 @@ main,.foot{max-width:1720px;margin-inline:auto}
 .sec-title.sm{font-size:22px;margin:0}
 .count{color:var(--blue);font-variant-numeric:tabular-nums}
 
-/* ── 사이드바 + 목록 배치 ── */
-.layout{display:grid;grid-template-columns:272px minmax(0,1fr);gap:24px;align-items:start;padding-block:24px}
-.side{
-  position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;
-  background:var(--card);border-radius:var(--r-lg);padding:20px 12px;
-}
-.content{min-width:0}
-.side-brand{margin:0 0 16px;padding-inline:12px;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--blue)}
-.side-title{font-size:16px;font-weight:800;letter-spacing:-.01em;padding-inline:12px;margin-bottom:12px}
-.side-menu{display:grid;gap:4px}
-.side-all,.side-task{
-  width:100%;border:0;background:none;text-align:left;color:var(--ink-2);
-  border-radius:var(--r-md);padding:12px;transition:background .15s,color .15s;
-}
-.side-all{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:700;font-size:15px}
-.side-all:hover,.side-task:hover{background:var(--pill-hover)}
-.side-all[aria-current]{background:var(--blue-soft);color:var(--blue)}
-.side-task{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px}
-.side-task[data-g="basics"]{--gc:var(--g-basics)}
-.side-task[data-g="patterns"]{--gc:var(--g-patterns)}
-.side-task[data-g="advanced"]{--gc:var(--g-advanced)}
-.side-task[aria-current]{
-  background:radial-gradient(130% 130% at 0 0,color-mix(in srgb,var(--gc) 70%,transparent),transparent);
-}
-.side-task[aria-current] .side-name{color:var(--blue)}
-.side-name{font-weight:800;font-size:16px;color:var(--ink)}
-.side-count{color:var(--muted);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.side-all[aria-current] .side-count{color:var(--blue)}
-.side-desc{grid-column:1 / -1;margin-top:4px;color:var(--muted);font-size:13px;font-weight:400;line-height:1.45}
-.side :focus-visible,.sheet-nav :focus-visible{outline-offset:-3px}
-
-/* 좁은 화면에서 사이드바 대신 여는 창 */
-.side-toggle{
-  display:none;border:0;background:var(--blue);color:#fff;font-weight:700;font-size:14px;
-  border-radius:999px;padding:8px 16px;
-}
-.sheet{
-  width:100%;max-width:560px;max-height:85vh;margin:auto auto 0;padding:0;border:0;
-  border-radius:var(--r-lg) var(--r-lg) 0 0;background:var(--card);color:var(--ink);
-}
-.sheet::backdrop{background:rgba(16,19,24,.45)}
-.sheet[open]{display:flex;flex-direction:column}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 16px 12px 24px}
-.sheet-head h2{font-size:18px;font-weight:800;letter-spacing:-.01em}
-.sheet-nav{overflow-y:auto;padding:0 12px calc(16px + env(safe-area-inset-bottom,0px))}
+.layout{padding-block:8px 24px}
 
 /* ── 목록 툴바 ── */
 .library{min-width:0}
@@ -155,20 +112,29 @@ main,.foot{max-width:1720px;margin-inline:auto}
   padding-block:16px;margin-bottom:8px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;
 }
 #libTitle:focus{outline:0}
-.toolbar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.toolbar-actions{display:flex;align-items:center;gap:8px}
-.reset{border:0;background:var(--blue-soft);color:var(--blue);font-weight:700;font-size:14px;border-radius:999px;padding:8px 14px}
+.list-head{margin:8px 0 16px}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ── 큰 분류 버튼 ── */
+.task-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.task-btn{
+  border:0;background:var(--card);color:var(--ink);border-radius:999px;
+  padding:12px 20px;font-size:16px;font-weight:800;white-space:nowrap;box-shadow:var(--shadow);
+  transition:background .15s,color .15s;
+}
+.task-btn:hover{background:var(--pill-hover)}
+.task-btn[aria-current]{background:var(--blue);color:#fff}
 
 /* ── 세부 탭 ── */
-.sub-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.sub-tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .sub-tab{
   border:0;background:var(--card);color:var(--ink-2);border-radius:999px;
   padding:8px 14px;font-size:14px;font-weight:700;white-space:nowrap;transition:background .15s,color .15s;
 }
 .sub-tab:hover{background:var(--pill-hover)}
 .sub-tab span{margin-left:6px;color:var(--muted);font-variant-numeric:tabular-nums}
-.sub-tab[aria-pressed="true"]{background:var(--blue);color:#fff}
-.sub-tab[aria-pressed="true"] span{color:#fff}
+.sub-tab[aria-pressed="true"]{background:var(--blue-soft);color:var(--blue)}
+.sub-tab[aria-pressed="true"] span{color:var(--blue)}
 
 /* ── 첫 화면: 할 일별 묶음 ── */
 .home{display:grid;gap:40px}
@@ -252,14 +218,17 @@ main,.foot{max-width:1720px;margin-inline:auto}
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-@media (max-width:1024px){
-  .layout{grid-template-columns:minmax(0,1fr);padding-block:8px}
-  .side{display:none}
-  .side-toggle{display:inline-block}
-}
 @media (max-width:760px){
   .hero{padding-block:32px 24px}
-  .sub-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  /* 큰 분류 버튼은 여러 줄이라 함께 따라오면 화면을 많이 가린다. 세부 탭만 위에 붙여 둔다 */
+  .toolbar{display:contents}
+  .task-nav{padding-block:8px}
+  .task-btn{padding:10px 16px;font-size:15px}
+  .sub-tabs{
+    position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding-block:12px;
+    justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+    background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);
+  }
   .sub-tabs::-webkit-scrollbar{display:none}
   .card{grid-template-columns:1fr;padding:28px 24px;gap:20px;border-radius:var(--r-lg)}
   .card-title{font-size:21px}
