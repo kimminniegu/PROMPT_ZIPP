@@ -127,14 +127,47 @@
   }
 
   /* ── 필터링 ── */
+  function hasQuery(p) {
+    const hay = (p.title + ' ' + p.chapter + ' ' + p.parts.map((x) => x.label + ' ' + x.body).join(' ')).toLowerCase();
+    return state.q.split(/\s+/).every((w) => hay.includes(w));
+  }
+
   function matches(p) {
     if (state.task && p.task !== state.task) return false;
-    if (state.q) {
-      // 검색할 때는 세부 탭과 상관없이 고른 메뉴 전체에서 찾는다
-      const hay = (p.title + ' ' + p.chapter + ' ' + p.parts.map((x) => x.label + ' ' + x.body).join(' ')).toLowerCase();
-      return state.q.split(/\s+/).every((w) => hay.includes(w));
-    }
+    // 검색할 때는 세부 탭과 상관없이 고른 메뉴 전체에서 찾는다
+    if (state.q) return hasQuery(p);
     return !state.sub || p.sub === state.sub;
+  }
+
+  /* ── 결과가 0개일 때: 다른 메뉴에 결과가 있을 때만 전체에서 찾기 버튼을 보여 준다 ── */
+  function renderEmpty(count, t) {
+    $('#empty').hidden = count > 0;
+    if (count > 0) return;
+    const others = t ? DATA.filter(hasQuery).length : 0;
+    const btn = $('#searchAllBtn');
+    btn.hidden = others === 0;
+    if (others > 0) {
+      $('#emptyMsg').textContent = t.name + '에는 찾는 프롬프트가 없어요. 다른 메뉴에는 ' + others + '개 있어요.';
+      btn.textContent = '전체에서 찾기';
+      btn.insertAdjacentHTML('beforeend', ICON.chev);
+    } else {
+      $('#emptyMsg').textContent = '찾는 프롬프트가 없어요. 다른 단어로 검색해 보세요.';
+    }
+  }
+
+  function searchAll() {
+    state.task = null;
+    state.sub = null;
+    render();
+    $('#libTitle').focus({ preventScroll: true });
+  }
+
+  /* ── 첫 화면: 제목부터 큰 분류 막대까지의 높이를 재서, 화면 가운데에 놓고 카드는 화면 아래로 보낸다 ── */
+  function fitHero() {
+    if (!document.body.classList.contains('is-home')) return;
+    const root = document.documentElement.style;
+    root.setProperty('--block', '100svh'); // 여백을 0으로 만든 뒤 잰다
+    root.setProperty('--block', Math.ceil($('#cardList').getBoundingClientRect().top + scrollY) + 'px');
   }
 
   function render() {
@@ -144,6 +177,7 @@
 
     // 첫 화면에서는 버튼 이름과 겹치므로 제목을 화면에서만 숨긴다 (화면 낭독기는 읽음)
     $('#listHead').classList.toggle('sr-only', isHome);
+    document.body.classList.toggle('is-home', isHome);
 
     if (isHome) {
       box.className = 'home';
@@ -155,13 +189,14 @@
       const list = DATA.filter(matches);
       box.className = 'card-list';
       box.replaceChildren(...list.map((p) => cardEl(p)));
-      $('#empty').hidden = list.length > 0;
+      renderEmpty(list.length, t);
       $('#resultCount').textContent = list.length + '개';
       $('#filterName').textContent = t ? t.name : '검색 결과';
     }
 
     renderTabs();
     syncTaskNav();
+    fitHero();
   }
 
   /* ── 세부 탭: 한 번에 하나만 고르며, 카드가 있는 분류만 있으므로 0개가 나오지 않는다 ── */
@@ -302,6 +337,9 @@
       if (e.key === 'Enter') $('#library').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
+    $('#searchAllBtn').addEventListener('click', searchAll);
+    addEventListener('resize', fitHero);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHero);
     $('#dClose').addEventListener('click', closeDetail);
     $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDetail(); });
 

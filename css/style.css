@@ -81,6 +81,10 @@ main,.foot{max-width:1200px;margin-inline:auto}
              radial-gradient(35% 55% at 72% 55%,var(--g-advanced),transparent 70%);
   opacity:.55;filter:blur(20px);
 }
+/* 첫 화면: 제목~큰 분류 막대를 화면 가운데에 놓고, 카드는 스크롤해야 보인다. --block은 js/app.js의 fitHero가 계산 */
+:root{--home-gap:max(0px,calc((100svh - var(--block,100svh)) / 2))}
+.is-home .hero{margin-top:var(--home-gap)}
+.home{padding-top:var(--home-gap)}
 .hero-brand{margin:0 0 4px;color:var(--blue);font-size:20px;font-weight:800;letter-spacing:-.02em}
 .hero-eyebrow{margin:0 0 12px;color:var(--ink-2);font-weight:700;font-size:15px}
 .hero-title{font-size:clamp(32px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.25}
@@ -184,6 +188,7 @@ main,.foot{max-width:1200px;margin-inline:auto}
 .btn.done{background:var(--ink);color:var(--card)}
 
 .empty{text-align:center;color:var(--muted);padding:48px 0}
+.empty p{margin:0 0 16px}
 .foot{text-align:center;color:var(--muted);font-size:14px;padding-block:32px 48px}
 
 /* ── 상세 보기 ── */

@@ -30,7 +30,10 @@
       <h2 id="libTitle" class="sec-title sm" tabindex="-1"><span id="filterName">한눈에 보기</span> <span class="count" id="resultCount"></span></h2>
     </div>
     <div id="cardList" class="card-list"></div>
-    <p id="empty" class="empty" hidden>찾는 프롬프트가 없어요. 다른 단어로 검색해 보세요.</p>
+    <div id="empty" class="empty" hidden>
+      <p id="emptyMsg"></p>
+      <button type="button" class="btn btn-primary" id="searchAllBtn" hidden></button>
+    </div>
   </section>
 </main>
 
