@@ -193,8 +193,9 @@
       $('#filterName').textContent = '한눈에 보기';
     } else {
       const list = DATA.filter(matches);
-      box.className = 'card-list';
-      box.replaceChildren(...list.map((p) => cardEl(p)));
+      // 메뉴 목록은 제목만, 검색 결과는 왜 나왔는지 알 수 있게 본문 미리보기까지 보여 준다
+      box.className = state.q ? 'card-list' : 'card-grid';
+      box.replaceChildren(...list.map((p) => cardEl(p, state.q ? 'search' : 'title')));
       renderEmpty(list.length, t);
       $('#resultCount').textContent = list.length + '개';
       $('#filterName').textContent = t ? t.name : '검색 결과';
@@ -252,24 +253,27 @@
     head.append(text, more);
 
     const grid = el('div', 'home-grid');
-    grid.append(...t.featured.map((id) => cardEl(DATA.find((p) => p.id === id), true)));
+    grid.append(...t.featured.map((id) => cardEl(DATA.find((p) => p.id === id), 'home')));
     sec.append(head, grid);
     return sec;
   }
 
-  function cardEl(p, compact) {
-    const c = el('article', compact ? 'card compact' : 'card');
+  // view: 'home'(첫 화면), 'title'(메뉴 목록) 모두 제목과 버튼만. 'search'(검색 결과)만 미리보기 포함
+  function cardEl(p, view) {
+    const c = el('article', view === 'search' ? 'card' : 'card compact');
     c.dataset.g = taskOf(p.task).tone;
     c.tabIndex = 0;
     c.setAttribute('aria-label', p.title + ' 자세히 보기');
 
     const left = el('div', 'card-left');
-    left.appendChild(el(compact ? 'h4' : 'h3', 'card-title', p.title));
+    left.appendChild(el(view === 'home' ? 'h4' : 'h3', 'card-title', p.title));
 
-    // 미리보기는 참고용 단계보다 실제로 쓰는 프롬프트를 먼저 보여 준다
-    const main = p.parts.find((x) => !x.where.startsWith('참고용')) || p.parts[0];
     const right = el('div', 'card-right');
-    right.appendChild(el('p', 'card-preview', main.body));
+    if (view === 'search') {
+      // 미리보기는 참고용 단계보다 실제로 쓰는 프롬프트를 먼저 보여 준다
+      const main = p.parts.find((x) => !x.where.startsWith('참고용')) || p.parts[0];
+      right.appendChild(el('p', 'card-preview', main.body));
+    }
 
     const actions = el('div', 'card-actions');
     const canCopy = p.parts.length === 1 || copiesTogether(p);

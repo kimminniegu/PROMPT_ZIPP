@@ -6,7 +6,7 @@ window.PROMPTS = [
   "sub": "기본·예시",
   "group": "basics",
   "chapter": "프롬프트의 세 가지 유형",
-  "title": "서술형: 상황을 이야기하듯",
+  "title": "상황을 이야기하듯 요청하기 (서술형)",
   "parts": [
    {
     "label": "실습 · 서술형",
@@ -53,7 +53,7 @@ window.PROMPTS = [
   "sub": "기본·예시",
   "group": "basics",
   "chapter": "프롬프트의 세 가지 유형",
-  "title": "함수형: 틀은 그대로, 값만 바꾸기",
+  "title": "틀은 두고 값만 바꿔 요청하기 (함수형)",
   "parts": [
    {
     "label": "실습 · 함수형",
@@ -127,7 +127,7 @@ window.PROMPTS = [
   "sub": "기본·예시",
   "group": "basics",
   "chapter": "예시로 답의 범위 좁히기",
-  "title": "제로샷: 예시 없이 바로",
+  "title": "예시 없이 바로 요청하기 (제로샷)",
   "parts": [
    {
     "label": "실습 · 제로샷",
@@ -153,7 +153,7 @@ window.PROMPTS = [
   "sub": "기본·예시",
   "group": "basics",
   "chapter": "예시로 답의 범위 좁히기",
-  "title": "원샷: 예시 하나",
+  "title": "예시 하나 넣어 요청하기 (원샷)",
   "parts": [
    {
     "label": "실습 · 원샷",
@@ -174,7 +174,7 @@ window.PROMPTS = [
   "sub": "기본·예시",
   "group": "basics",
   "chapter": "예시로 답의 범위 좁히기",
-  "title": "퓨샷: 예시 여러 개",
+  "title": "예시 여러 개 넣어 요청하기 (퓨샷)",
   "parts": [
    {
     "label": "실습 · 퓨샷",
@@ -238,7 +238,7 @@ window.PROMPTS = [
   "sub": "역할·듣는 사람",
   "group": "basics",
   "chapter": "페르소나: AI에게 역할 주기",
-  "title": "좋은 페르소나의 4가지 요소",
+  "title": "AI에게 역할 잘 주는 4가지 요소 (페르소나)",
   "parts": [
    {
     "label": "실습 · 세무사 페르소나",
@@ -259,7 +259,7 @@ window.PROMPTS = [
   "sub": "역할·듣는 사람",
   "group": "basics",
   "chapter": "페르소나: AI에게 역할 주기",
-  "title": "다양한 페르소나 만들어 보기",
+  "title": "AI에게 여러 역할 맡겨 보기 (페르소나)",
   "parts": [
    {
     "label": "비평가 페르소나",
@@ -285,7 +285,7 @@ window.PROMPTS = [
   "sub": "여러 관점",
   "group": "basics",
   "chapter": "페르소나: AI에게 역할 주기",
-  "title": "멀티 페르소나: 여러 전문가에게 동시에",
+  "title": "여러 전문가에게 동시에 묻기 (멀티 페르소나)",
   "parts": [
    {
     "label": "실습 · 멀티 페르소나",
@@ -328,7 +328,7 @@ window.PROMPTS = [
   "sub": "마크다운·강조",
   "group": "basics",
   "chapter": "마크다운으로 정리된 프롬프트",
-  "title": "# 헤더와 ''' 코드 블록",
+  "title": "제목과 코드 블록 쓰기 (마크다운)",
   "parts": [
    {
     "label": "# 헤더: 할 일을 제목처럼",
@@ -355,7 +355,7 @@ window.PROMPTS = [
   "sub": "마크다운·강조",
   "group": "basics",
   "chapter": "마크다운으로 정리된 프롬프트",
-  "title": "> 인용문과 - 목록",
+  "title": "인용문과 목록 쓰기 (마크다운)",
   "parts": [
    {
     "label": "> 인용문: 꼭 지킬 조건",
@@ -382,7 +382,7 @@ window.PROMPTS = [
   "sub": "마크다운·강조",
   "group": "basics",
   "chapter": "마크다운으로 정리된 프롬프트",
-  "title": "| 표와 **굵게**",
+  "title": "표와 굵은 글씨 쓰기 (마크다운)",
   "parts": [
    {
     "label": "| 표: 이런 모양으로 답해 줘",
@@ -627,7 +627,7 @@ window.PROMPTS = [
   "sub": "역할·듣는 사람",
   "group": "basics",
   "chapter": "여러 답 받기, 듣는 사람 맞추기",
-  "title": "이용자 페르소나: \"이 답을 듣는 사람은 ~입니다\"",
+  "title": "듣는 사람을 정해 주고 답받기 (이용자 페르소나)",
   "parts": [
    {
     "label": "실습 · 듣는 사람 바꾸기",
@@ -759,7 +759,7 @@ window.PROMPTS = [
   "sub": "질문 잘하기",
   "group": "basics",
   "chapter": "단계별 계획, 역질문, 검증",
-  "title": "뒤집힌 상호작용: AI가 묻고 내가 답한다",
+  "title": "AI가 묻고 내가 답하기 (뒤집힌 상호작용)",
   "parts": [
    {
     "label": "방법 1 · 일괄 질문",
@@ -1703,7 +1703,7 @@ window.PROMPTS = [
   "sub": "단축어·상황 고정",
   "group": "patterns",
   "chapter": "컨텍스트 관리자 · 무한 생성",
-  "title": "컨텍스트 관리자: 내 상황에 맞춘 답",
+  "title": "내 상황 알려 주고 맞춤 답받기 (컨텍스트)",
   "parts": [
    {
     "label": "컨텍스트 선언 블록 (틀)",
@@ -1921,7 +1921,7 @@ window.PROMPTS = [
   "sub": "전략·협상",
   "group": "patterns",
   "chapter": "프롬프트 프레임워크",
-  "title": "RISEN · BAB 빈칸 채워 쓰기",
+  "title": "빈칸 채워 문제 해결·스토리 쓰기 (RISEN · BAB)",
   "parts": [
    {
     "label": "RISEN · 거래 분쟁 해결 (빈칸 채우기)",
@@ -2292,7 +2292,7 @@ window.PROMPTS = [
   "sub": "프롬프트 만들기",
   "group": "advanced",
   "chapter": "APE: 프롬프트를 만드는 프롬프트",
-  "title": "APE 마스터 프롬프트",
+  "title": "최적의 프롬프트 자동으로 만들기 (APE)",
   "parts": [
    {
     "label": "실습 · APE 마스터 프롬프트 (1)",
@@ -2318,7 +2318,7 @@ window.PROMPTS = [
   "sub": "기획·요청 잘하기",
   "group": "advanced",
   "chapter": "APE: 프롬프트를 만드는 프롬프트",
-  "title": "코딩용 APE 프레임워크",
+  "title": "코딩 프롬프트 자동으로 만들기 (APE)",
   "parts": [
    {
     "label": "실습 · 코딩 APE 프레임워크",

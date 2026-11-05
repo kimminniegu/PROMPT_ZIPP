@@ -149,6 +149,7 @@ main,.foot{max-width:1200px;margin-inline:auto}
 
 /* ── 프롬프트 카드 ── */
 .card-list{display:grid;gap:16px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
 .card{
   position:relative;overflow:hidden;isolation:isolate;
   display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:32px;
@@ -172,10 +173,9 @@ main,.foot{max-width:1200px;margin-inline:auto}
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 .card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.card.compact{display:flex;flex-direction:column;gap:14px;padding:28px;border-radius:var(--r-lg)}
+.card.compact{display:flex;flex-direction:column;gap:20px;padding:28px;border-radius:var(--r-lg)}
 .card.compact .card-title{font-size:20px}
 .card.compact .card-right{flex:1}
-.card.compact .card-preview{font-size:15px;line-height:1.7}
 .card.compact .card-actions{margin-top:auto}
 .btn{
   display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;
