@@ -284,7 +284,7 @@
       copy.addEventListener('click', (e) => { e.stopPropagation(); copyText(fullText(p), copy); });
       actions.appendChild(copy);
     }
-    const more = el('button', canCopy ? 'btn btn-ghost' : 'btn btn-primary', canCopy ? '자세히 보기' : '단계별로 복사하기');
+    const more = el('button', canCopy ? 'btn btn-text' : 'btn btn-primary', canCopy ? '자세히 보기' : '단계별로 복사하기');
     more.type = 'button';
     more.insertAdjacentHTML('beforeend', ICON.chev);
     more.addEventListener('click', (e) => { e.stopPropagation(); openDetail(p); });

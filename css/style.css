@@ -145,11 +145,11 @@ main,.foot{max-width:1200px;margin-inline:auto}
 .home-head{display:flex;justify-content:space-between;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-bottom:16px}
 .home-name{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .home-desc{margin:2px 0 0;color:var(--muted);font-size:14px}
-.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
 
 /* ── 프롬프트 카드 ── */
 .card-list{display:grid;gap:16px}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(400px,100%),1fr));gap:24px}
 .card{
   position:relative;overflow:hidden;isolation:isolate;
   display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:32px;
@@ -173,7 +173,7 @@ main,.foot{max-width:1200px;margin-inline:auto}
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 .card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.card.compact{display:flex;flex-direction:column;gap:20px;padding:28px;border-radius:var(--r-lg)}
+.card.compact{display:flex;flex-direction:column;gap:32px;padding:36px;border-radius:var(--r-lg)}
 .card.compact .card-title{font-size:20px}
 .card.compact .card-right{flex:1}
 .card.compact .card-actions{margin-top:auto}
@@ -185,6 +185,8 @@ main,.foot{max-width:1200px;margin-inline:auto}
 .btn-primary{background:var(--blue);color:#fff}
 .btn-primary:hover{filter:brightness(1.07)}
 .btn-ghost{background:var(--blue-soft);color:var(--blue)}
+.btn-text{background:none;color:var(--ink-2)}
+.btn-text:hover{color:var(--blue)}
 .btn.done{background:var(--ink);color:var(--card)}
 
 .empty{text-align:center;color:var(--muted);padding:48px 0}
@@ -236,6 +238,7 @@ main,.foot{max-width:1200px;margin-inline:auto}
   }
   .sub-tabs::-webkit-scrollbar{display:none}
   .card{grid-template-columns:1fr;padding:28px 24px;gap:20px;border-radius:var(--r-lg)}
+  .card.compact{padding:28px 24px;gap:24px}
   .card-title{font-size:21px}
   .detail-head,.detail-parts,.detail-foot{padding-inline:20px}
 }
