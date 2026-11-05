@@ -111,19 +111,21 @@
       window.scrollTo({ top: 0, behavior: scrollBehavior() });
       return;
     }
-    // 목록 시작이 이미 화면에 잘 보이면 화면을 움직이지 않는다
-    const top = $('#library').getBoundingClientRect().top;
-    if (top < 0 || top > innerHeight * 0.6) {
-      $('#library').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
-    }
+    // 첫 화면에서는 하부 항목만 보여 준다. 하부 항목이 없거나 이미 아래로 내려와 있으면 카드로 바로 이동
+    if (!taskOf(task).subs.length || $('#library').getBoundingClientRect().top < 0) scrollToCards();
   }
 
   function pickSub(sub) {
     state.sub = sub;
     render();
-    if ($('#library').getBoundingClientRect().top < 0) {
-      $('#library').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
-    }
+    scrollToCards();
+  }
+
+  // 위에 붙어 있는 버튼 바로 아래에 카드 목록이 오도록 이동한다
+  function scrollToCards() {
+    const stuck = Math.max($('.toolbar').offsetHeight, $('#subTabs').offsetHeight);
+    const top = $('#foldGap').getBoundingClientRect().bottom + scrollY - stuck;
+    window.scrollTo({ top, behavior: scrollBehavior() });
   }
 
   /* ── 필터링 ── */
@@ -162,12 +164,16 @@
     $('#libTitle').focus({ preventScroll: true });
   }
 
-  /* ── 첫 화면: 제목부터 큰 분류 막대까지의 높이를 재서, 화면 가운데에 놓고 카드는 화면 아래로 보낸다 ── */
-  function fitHero() {
-    if (!document.body.classList.contains('is-home')) return;
+  /* ── 첫 화면: 제목~하부 항목을 화면 가운데에 놓고, 카드는 화면 아래로 보낸다 (검색 중에는 안 함) ── */
+  function fitFirstScreen() {
+    if (!document.body.classList.contains('is-first')) return;
+    const heroGap = parseFloat(getComputedStyle($('.hero')).marginTop) || 0;
+    const top = Math.ceil($('#foldGap').getBoundingClientRect().top + scrollY - heroGap);
+    // 하부 항목이 아직 없어도 그 자리를 미리 비워 둬서, 버튼을 눌러도 제목과 검색창이 움직이지 않게 한다
+    const reserve = $('#subTabs').hidden ? (innerWidth <= 760 ? 62 : 50) : 0;
     const root = document.documentElement.style;
-    root.setProperty('--block', '100svh'); // 여백을 0으로 만든 뒤 잰다
-    root.setProperty('--block', Math.ceil($('#cardList').getBoundingClientRect().top + scrollY) + 'px');
+    root.setProperty('--top-h', top + 'px');
+    root.setProperty('--block', (top + reserve) + 'px');
   }
 
   function render() {
@@ -177,7 +183,7 @@
 
     // 첫 화면에서는 버튼 이름과 겹치므로 제목을 화면에서만 숨긴다 (화면 낭독기는 읽음)
     $('#listHead').classList.toggle('sr-only', isHome);
-    document.body.classList.toggle('is-home', isHome);
+    document.body.classList.toggle('is-first', !state.q);
 
     if (isHome) {
       box.className = 'home';
@@ -196,7 +202,7 @@
 
     renderTabs();
     syncTaskNav();
-    fitHero();
+    fitFirstScreen();
   }
 
   /* ── 세부 탭: 한 번에 하나만 고르며, 카드가 있는 분류만 있으므로 0개가 나오지 않는다 ── */
@@ -241,6 +247,7 @@
     more.addEventListener('click', () => {
       pick(t.id);
       $('#libTitle').focus({ preventScroll: true });
+      scrollToCards();
     });
     head.append(text, more);
 
@@ -338,8 +345,10 @@
     });
 
     $('#searchAllBtn').addEventListener('click', searchAll);
-    addEventListener('resize', fitHero);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHero);
+    addEventListener('resize', fitFirstScreen);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitFirstScreen);
+    // 새로고침하면 항상 맨 위 첫 화면에서 시작한다
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     $('#dClose').addEventListener('click', closeDetail);
     $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDetail(); });
 
